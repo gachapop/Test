@@ -5,6 +5,9 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 
+using Grpc.Core;
+using MagicOnion.Server;
+
 namespace server_grpc_test
 {
 	static class Program
@@ -14,12 +17,15 @@ namespace server_grpc_test
 		/// </summary>
 		static void Main( string[] args )
 		{
+			// 通常サービスの起動
+
 			ServiceBase[] ServicesToRun;
 			ServicesToRun = new ServiceBase[]
 			{
 				new MyNewService( args )
 			};
 			ServiceBase.Run(ServicesToRun);
+
 		}
 	}
 }

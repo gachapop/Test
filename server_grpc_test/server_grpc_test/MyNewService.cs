@@ -11,6 +11,12 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Runtime.InteropServices;
 
+using grpc_test_interface;
+using MagicOnion;
+using MagicOnion.Server;
+using Grpc.Core;
+
+
 namespace server_grpc_test
 {
 	public partial class MyNewService : ServiceBase
@@ -59,17 +65,41 @@ namespace server_grpc_test
 
 			eventLog1.WriteEntry("In OnStart.");
 
-			// ポーリング
-			var timer = new System.Timers.Timer()
-			{
-				Interval = 60000,
-			};
-			timer.Elapsed += new ElapsedEventHandler(OnTimer);
+			//// ポーリング
+			//var timer = new System.Timers.Timer()
+			//{
+			//	Interval = 60000,
+			//};
+			//timer.Elapsed += new ElapsedEventHandler(OnTimer);
+
+			GrpcServerStart();
+			eventLog1.WriteEntry("grpc server started.");
 
 			// 起動完了なので、runningに。
 			serviceStatus.dwCurrentState = ServiceState.Running;
 			SetServiceStatus(this.ServiceHandle, ref serviceStatus);
 		}
+
+		/// <summary>
+		/// Grpcサーバー開始
+		/// </summary>
+		/// <returns></returns>
+		private bool GrpcServerStart()
+		{
+			GrpcEnvironment.SetLogger(new Grpc.Core.Logging.ConsoleLogger());
+
+			var service = MagicOnionEngine.BuildServerServiceDefinition(isReturnExceptionStackTraceInErrorDetail: true);
+
+			var server = new Grpc.Core.Server
+			{
+				Services = { service },
+				Ports = { new ServerPort("localhost", 12345, ServerCredentials.Insecure) },
+			};
+			server.Start();
+
+			return true;
+		}
+
 
 		private int eventId = 1;
 
@@ -138,7 +168,7 @@ namespace server_grpc_test
 
 		[DllImport("advapi32.dll", SetLastError = true)]
 		private static extern bool SetServiceStatus(System.IntPtr handle, ref ServiceStatus serviceStatus);
-
-
 	}
+
+
 }
